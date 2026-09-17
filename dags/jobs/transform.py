@@ -57,6 +57,7 @@ def main() -> None:
     print(f"saved parquet(snappy) -> {args.output}")
 
     agg.show(agg_rows, truncate=False)
+    print(f"AGG_ROW_COUNT={agg_rows}   (type x genre 집계 행 수 — 최종)")
     spark.stop()
 
 
