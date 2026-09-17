@@ -1,12 +1,3 @@
-"""Q8 — boto3 로 S3 bronze/ 객체 목록·크기 출력 -> netflix_titles.csv 다운로드 -> CSV 레코드 수 출력.
-
-버킷 이름은 코드에 적지 않고 환경변수(S3_BUCKET) 또는 실행 인자로 받는다.
-액세스 키는 코드에 적지 않는다. (aws configure 로 설정한 자격증명 파일을 boto3 가 자동으로 읽는다)
-
-실행 예:
-  S3_BUCKET=de-3-yusuklee python s3_download.py
-  python s3_download.py --bucket de-3-yusuklee
-"""
 import argparse
 import csv
 import os
@@ -20,7 +11,6 @@ LOCAL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 
 def list_objects(s3, bucket: str, prefix: str) -> list:
-    """[1] prefix 아래 객체 목록과 각 객체의 크기를 출력한다."""
     print(f"[1] list  s3://{bucket}/{prefix}")
     objs = []
     paginator = s3.get_paginator("list_objects_v2")
@@ -34,7 +24,6 @@ def list_objects(s3, bucket: str, prefix: str) -> list:
 
 
 def download(s3, bucket: str, key: str, local_path: str) -> None:
-    """[2] 객체를 로컬로 다운로드한다."""
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
     print(f"[2] download  s3://{bucket}/{key} -> {os.path.relpath(local_path)}")
     s3.download_file(bucket, key, local_path)
@@ -42,10 +31,9 @@ def download(s3, bucket: str, key: str, local_path: str) -> None:
 
 
 def count_records(local_path: str) -> int:
-    """[3] CSV 레코드 수를 센다. 헤더 제외, 따옴표 안의 줄바꿈은 한 행으로 취급(csv 모듈 사용)."""
     with open(local_path, newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
-        header = next(reader)                  # 헤더 제외
+        header = next(reader)
         n = sum(1 for _ in reader)
     print(f"[3] rows  {n:,}  (header: {len(header)} columns, header excluded)")
     return n

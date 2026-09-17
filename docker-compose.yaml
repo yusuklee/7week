@@ -50,7 +50,6 @@ x-airflow-common:
   # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
   # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   # image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:3.3.1}
-  # Q5: 공통 설정(x-airflow-common) 의 이 한 곳만 바꿔 모든 Airflow 서비스가 커스텀 이미지를 쓰게 한다
   build: .
   image: week7-airflow:yusuklee
   env_file:

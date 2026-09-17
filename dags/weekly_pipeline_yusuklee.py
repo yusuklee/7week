@@ -1,8 +1,3 @@
-"""Q9 — S3 · Spark 통합 파이프라인 DAG.
-
-download(boto3, S3 bronze/ -> 컨테이너) -> transform(spark-submit jobs/transform.py) -> upload(boto3, 결과 -> S3 silver/{오늘날짜}/)
-버킷 이름은 Airflow Variable `netflix_bucket` 로 받고, 액세스 키는 어디에도 적지 않는다.
-"""
 import logging
 import os
 from datetime import datetime
@@ -22,7 +17,6 @@ JOB_PATH = "/opt/airflow/dags/jobs/transform.py"
 
 
 def download_from_s3(**context):
-    """task 1: boto3 로 S3 bronze/ 의 CSV 를 컨테이너 안으로 내려받는다."""
     bucket = Variable.get("netflix_bucket")
     s3 = S3Hook(aws_conn_id="aws_default").get_conn()
     os.makedirs(os.path.dirname(LOCAL_CSV), exist_ok=True)
@@ -33,10 +27,9 @@ def download_from_s3(**context):
 
 
 def upload_to_s3(**context):
-    """task 3: boto3 로 parquet 결과를 S3 silver/{오늘날짜}/ 에 올리고 목록·개수를 출력한다."""
     bucket = Variable.get("netflix_bucket")
     today = datetime.now().strftime("%Y-%m-%d")
-    run_date = context["dag_run"].run_after.strftime("%Y-%m-%d")     # 수동 실행에도 값이 있는 실행 날짜
+    run_date = context["dag_run"].run_after.strftime("%Y-%m-%d")
     local_dir = os.path.join(OUTPUT_DIR, run_date)
     prefix = f"silver/{today}/"
     s3 = S3Hook(aws_conn_id="aws_default").get_conn()
@@ -67,7 +60,6 @@ with DAG(
 ) as dag:
     download = PythonOperator(task_id="download_from_s3", python_callable=download_from_s3)
 
-    # task 2: spark-submit 으로 집계 job 제출 (기준 연도는 params 로 주입, 기본 2015)
     transform = BashOperator(
         task_id="transform_with_spark",
         bash_command=(
