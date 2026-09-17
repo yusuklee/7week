@@ -36,7 +36,8 @@ def upload_to_s3(**context):
     """task 3: boto3 로 parquet 결과를 S3 silver/{오늘날짜}/ 에 올리고 목록·개수를 출력한다."""
     bucket = Variable.get("netflix_bucket")
     today = datetime.now().strftime("%Y-%m-%d")
-    local_dir = os.path.join(OUTPUT_DIR, context["ds"])
+    run_date = context["dag_run"].run_after.strftime("%Y-%m-%d")     # 수동 실행에도 값이 있는 실행 날짜
+    local_dir = os.path.join(OUTPUT_DIR, run_date)
     prefix = f"silver/{today}/"
     s3 = S3Hook(aws_conn_id="aws_default").get_conn()
 
@@ -71,7 +72,7 @@ with DAG(
         task_id="transform_with_spark",
         bash_command=(
             f"spark-submit --master local[*] {JOB_PATH} "
-            f"--input {LOCAL_CSV} --output {OUTPUT_DIR}/{{{{ ds }}}} "
+            f"--input {LOCAL_CSV} --output {OUTPUT_DIR}/{{{{ dag_run.run_after.strftime('%Y-%m-%d') }}}} "
             "--min-year {{ params.min_year }}"
         ),
         params={"min_year": 2015},
